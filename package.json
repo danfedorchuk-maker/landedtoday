@@ -1,0 +1,12 @@
+{
+  "name": "landedtoday",
+  "version": "1.0.0",
+  "description": "Survive your first 72 hours in a new country",
+  "private": true,
+  "dependencies": {
+    "stripe": "^16.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

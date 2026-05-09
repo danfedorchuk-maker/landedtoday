@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LandedToday — Survive Your First 72 Hours Abroad</title>
+  <meta name="description" content="Get a personalized 72-hour survival guide before you land. Built for your nationality, your destination, your situation.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #FAF7F2;
+      --surface:      #FFFFFF;
+      --primary:      #C4622D;
+      --primary-dark: #A0501F;
+      --primary-light:#F5E6D8;
+      --text:         #2D1F14;
+      --text-muted:   #7B6654;
+      --border:       #E8D5C4;
+      --radius:       14px;
+      --shadow:       0 4px 24px rgba(196,98,45,0.10);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Test banner ── */
+    #test-banner {
+      display: none;
+      background: #FEF3C7;
+      border-bottom: 2px solid #F59E0B;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.84rem;
+      color: #92400E;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.4px;
+      text-decoration: none;
+    }
+    .nav-brand span { color: var(--text); }
+    .nav-tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Views ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(140deg, #D4703A 0%, #8B4513 55%, #4A240A 100%);
+      color: white;
+      text-align: center;
+      padding: 5rem 1.5rem 4.5rem;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      opacity: 0.75;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.25rem, 5vw, 3.75rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      opacity: 0.88;
+      max-width: 540px;
+      margin: 0 auto 2rem;
+      line-height: 1.65;
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.55rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .hero-pill {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 100px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.8rem;
+    }
+
+    /* ── Main layout ── */
+    .main-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    /* ── Features column ── */
+    .features h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.4rem;
+    }
+    .features-sub {
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      margin-bottom: 2rem;
+      max-width: 380px;
+    }
+    .feature {
+      display: flex;
+      gap: 1rem;
+      padding: 0.875rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .feature:last-of-type { border-bottom: none; }
+    .feature-icon {
+      font-size: 1.3rem;
+      width: 1.8rem;
+      flex-shrink: 0;
+      text-align: center;
+      padding-top: 1px;
+    }
+    .feature strong {
+      display: block;
+      font-size: 0.94rem;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+    .feature span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .trust {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .trust-check { color: #4CAF50; font-weight: 700; font-size: 0.9rem; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      position: sticky;
+      top: 76px;
+    }
+    .form-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .form-card .form-desc {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .form-error {
+      display: none;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.83rem;
+      color: #B91C1C;
+      margin-bottom: 1rem;
+    }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .form-label .opt {
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.93rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      background: white;
+    }
+    textarea { resize: vertical; min-height: 76px; }
+    .radio-row { display: flex; gap: 0.6rem; }
+    .radio-opt { flex: 1; position: relative; }
+    .radio-opt input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0; height: 0;
+    }
+    .radio-opt label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .radio-opt input:checked + label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.875rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 0.375rem;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.2px;
+    }
+    .submit-btn:hover:not(:disabled) { background: var(--primary-dark); }
+    .submit-btn:active:not(:disabled) { transform: scale(0.985); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .submit-btn.test-mode { background: #D97706; }
+    .submit-btn.test-mode:hover:not(:disabled) { background: #B45309; }
+    .form-fine {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.7rem;
+    }
+
+    /* ── Loading view ── */
+    #loading-view {
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .spinner {
+      width: 52px;
+      height: 52px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 1.75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-view h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.3px;
+    }
+    #loading-view .loading-sub {
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      margin-bottom: 2.5rem;
+    }
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .loading-step {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Guide view ── */
+    #guide-view {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .ready-banner {
+      background: linear-gradient(135deg, #2E7D32, #1B5E20);
+      color: white;
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .ready-icon { font-size: 2.5rem; flex-shrink: 0; }
+    .ready-banner h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .ready-banner p { font-size: 0.85rem; opacity: 0.88; }
+    .guide-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline {
+      background: white;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    #guide-frame {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.09);
+      min-height: 900px;
+      background: white;
+      display: block;
+    }
+
+    /* ── Error view ── */
+    #error-view {
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+    .error-emoji { font-size: 3rem; margin-bottom: 1rem; }
+    #error-view h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    #error-msg { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.93rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 800px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+        padding: 2rem 1rem;
+        gap: 2rem;
+      }
+      .form-card { position: static; }
+      .features { order: 2; }
+      .form-card { order: 1; }
+    }
+    @media (max-width: 480px) {
+      .hero { padding: 3.5rem 1rem 3rem; }
+      nav { padding: 0.875rem 1rem; }
+      .nav-tagline { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="test-banner">
+    🧪 <strong>Test Mode</strong> — Payment bypassed. Fill the form and click Generate.
+  </div>
+
+  <nav>
+    <a class="nav-brand" href="/">🌍 Landed<span>Today</span></a>
+    <span class="nav-tagline">Survive your first 72 hours abroad</span>
+  </nav>
+
+  <!-- ════════════════════════════════
+       FORM VIEW
+  ════════════════════════════════ -->
+  <div id="form-view" class="view active">
+
+    <section class="hero">
+      <div class="hero-eyebrow">For expats &amp; people relocating abroad</div>
+      <h1>Land anywhere.<br>Survive day one.</h1>
+      <p class="hero-sub">
+        A personalized 72-hour survival guide, built for your nationality,
+        your destination, and your situation. No more guessing.
+      </p>
+      <div class="hero-pills">
+        <span class="hero-pill">72-hour checklist</span>
+        <span class="hero-pill">Where expats gather</span>
+        <span class="hero-pill">Embassy contacts</span>
+        <span class="hero-pill">SIM card guide</span>
+        <span class="hero-pill">Banking tips</span>
+        <span class="hero-pill">Real costs</span>
+        <span class="hero-pill">Insider secrets</span>
+      </div>
+    </section>
+
+    <div class="main-layout">
+
+      <!-- Features -->
+      <div class="features">
+        <h2>Everything you need<br>before you land.</h2>
+        <p class="features-sub">Stop piecing together advice from Reddit threads and outdated travel blogs. Get one complete, personalized guide.</p>
+
+        <div class="feature">
+          <div class="feature-icon">⏱️</div>
+          <div>
+            <strong>First 72 Hours Checklist</strong>
+            <span>Step-by-step priority actions, in order. Don't miss a thing on arrival.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <div>
+            <strong>Where Expats Actually Gather</strong>
+            <span>Real cafes, coworking spaces, Facebook groups, and the right neighborhoods.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🏛️</div>
+          <div>
+            <strong>Embassy &amp; Emergency Contacts</strong>
+            <span>Your country's embassy: address, main phone, 24hr emergency line, key services.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <div>
+            <strong>SIM Card Survival Guide</strong>
+            <span>Best carriers for foreigners, where to buy, required documents, real costs.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💳</div>
+          <div>
+            <strong>Banking for Foreigners</strong>
+            <span>Which banks accept you, what to bring, and the best fintech alternatives.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <div>
+            <strong>Cost of Living Reality</strong>
+            <span>Real numbers for rent, food, and transport — not the inflated tourist rate.</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔑</div>
+          <div>
+            <strong>What Nobody Tells You</strong>
+            <span>The things you only learn the hard way — before you learn them the hard way.</span>
+          </div>
+        </div>
+
+        <div class="trust">
+          <div class="trust-item"><span class="trust-check">✓</span> No data stored</div>
+          <div class="trust-item"><span class="trust-check">✓</span> One-time $19 payment</div>
+          <div class="trust-item"><span class="trust-check">✓</span> Instant HTML download</div>
+          <div class="trust-item"><span class="trust-check">✓</span> AI-generated fresh for you</div>
+          <div class="trust-item"><span class="trust-check">✓</span> No subscription</div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="form-card">
+        <h3>Build My 72-Hour Guide</h3>
+        <p class="form-desc">Takes 2 minutes. Your guide generates instantly after payment.</p>
+
+        <div class="form-error" id="form-error"></div>
+
+        <form id="guide-form" novalidate>
+
+          <div class="form-group">
+            <label class="form-label" for="country">Destination Country</label>
+            <input type="text" id="country" name="country"
+              placeholder="e.g. Thailand, Portugal, Colombia"
+              autocomplete="off" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="city">Destination City</label>
+            <input type="text" id="city" name="city"
+              placeholder="e.g. Bangkok, Lisbon, Medellín"
+              autocomplete="off" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Purpose of Visit</label>
+            <div class="radio-row">
+              <div class="radio-opt">
+                <input type="radio" id="purpose-relocating" name="purpose" value="relocating" checked>
+                <label for="purpose-relocating">🏠 Relocating</label>
+              </div>
+              <div class="radio-opt">
+                <input type="radio" id="purpose-tourist" name="purpose" value="tourist">
+                <label for="purpose-tourist">✈️ Tourist</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="nationality">Your Nationality</label>
+            <input type="text" id="nationality" name="nationality"
+              placeholder="e.g. American, British, Brazilian"
+              autocomplete="off" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="concerns">
+              Specific Concerns <span class="opt">(optional)</span>
+            </label>
+            <textarea id="concerns" name="concerns" rows="3"
+              placeholder="e.g. finding a co-working space quickly, healthcare access, bringing a pet, finding housing fast..."></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submit-btn">
+            Get My Guide — $19
+          </button>
+          <p class="form-fine">Secure payment via Stripe &middot; Instant HTML download &middot; No subscription</p>
+
+        </form>
+      </div>
+
+    </div>
+  </div><!-- /form-view -->
+
+  <!-- ════════════════════════════════
+       LOADING VIEW
+  ════════════════════════════════ -->
+  <div id="loading-view" class="view">
+    <div class="spinner"></div>
+    <h2>Crafting your personalized guide…</h2>
+    <p class="loading-sub">Pulling together everything you need to know about your destination.</p>
+    <div class="loading-steps">
+      <div class="loading-step" style="animation-delay:0.6s">🔍 Researching your destination…</div>
+      <div class="loading-step" style="animation-delay:2.2s">🗺️ Mapping expat resources…</div>
+      <div class="loading-step" style="animation-delay:4.0s">📋 Building your 72-hour checklist…</div>
+      <div class="loading-step" style="animation-delay:6.0s">✨ Finalizing your guide…</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       GUIDE VIEW
+  ════════════════════════════════ -->
+  <div id="guide-view" class="view">
+    <div class="ready-banner">
+      <span class="ready-icon">🎉</span>
+      <div>
+        <h2>Your guide is ready!</h2>
+        <p>Your personalized survival guide has been generated and is downloading now.</p>
+      </div>
+    </div>
+    <div class="guide-actions">
+      <button class="btn btn-primary" id="redownload-btn">⬇️ Download Again</button>
+      <button class="btn btn-outline" id="start-over-btn">← Build Another Guide</button>
+    </div>
+    <iframe id="guide-frame" title="Your Survival Guide" sandbox="allow-same-origin"></iframe>
+  </div>
+
+  <!-- ════════════════════════════════
+       ERROR VIEW
+  ════════════════════════════════ -->
+  <div id="error-view" class="view">
+    <div class="error-emoji">😕</div>
+    <h2>Something went wrong</h2>
+    <p id="error-msg"></p>
+    <button class="btn btn-primary" id="error-retry-btn">← Try Again</button>
+  </div>
+
+  <footer>
+    LandedToday &mdash; Helping expats survive the first 72 hours &middot;
+    <a href="mailto:hello@landedtoday.com">Contact</a>
+  </footer>
+
+  <script>
+    (function () {
+      const params   = new URLSearchParams(window.location.search);
+      const isTest   = params.get('test') === 'skip';
+      const isOk     = params.get('success') === 'true';
+      const sessionId= params.get('session_id');
+      const cancelled= params.get('cancelled') === 'true';
+
+      let guideBlob     = null;
+      let guideFilename = 'landedtoday-guide.html';
+
+      // ── Helpers ──────────────────────────────────────────────
+      function showView(id) {
+        ['form-view','loading-view','guide-view','error-view'].forEach(v => {
+          const el = document.getElementById(v);
+          el.classList.toggle('active', v === id);
+        });
+      }
+
+      function setFormError(msg) {
+        const el = document.getElementById('form-error');
+        el.textContent = msg;
+        el.style.display = msg ? 'block' : 'none';
+      }
+
+      function triggerDownload() {
+        if (!guideBlob) return;
+        const url = URL.createObjectURL(guideBlob);
+        const a   = Object.assign(document.createElement('a'), { href: url, download: guideFilename });
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 8000);
+      }
+
+      // ── Init ─────────────────────────────────────────────────
+      if (isTest) {
+        document.getElementById('test-banner').style.display = 'block';
+        const btn = document.getElementById('submit-btn');
+        btn.textContent = 'Generate Test Guide (Free)';
+        btn.classList.add('test-mode');
+      }
+
+      if (isOk && sessionId) {
+        history.replaceState({}, '', '/');
+        showView('loading-view');
+        generateGuide({ session_id: sessionId });
+      } else if (cancelled) {
+        history.replaceState({}, '', '/');
+        showView('form-view');
+        setFormError('Payment was cancelled. Ready when you are.');
+      } else {
+        showView('form-view');
+      }
+
+      // ── Form submit ───────────────────────────────────────────
+      document.getElementById('guide-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        setFormError('');
+
+        const country     = document.getElementById('country').value.trim();
+        const city        = document.getElementById('city').value.trim();
+        const purpose     = document.querySelector('input[name="purpose"]:checked').value;
+        const nationality = document.getElementById('nationality').value.trim();
+        const concerns    = document.getElementById('concerns').value.trim();
+
+        if (!country || !city || !nationality) {
+          setFormError('Please fill in your destination country, city, and nationality.');
+          return;
+        }
+
+        const payload = { country, city, purpose, nationality, concerns };
+
+        if (isTest) {
+          showView('loading-view');
+          await generateGuide({ ...payload, test: 'skip' });
+        } else {
+          await startCheckout(payload);
+        }
+      });
+
+      // ── Checkout ──────────────────────────────────────────────
+      async function startCheckout(payload) {
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Preparing checkout…';
+
+        try {
+          const res  = await fetch('/api/checkout', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.url) throw new Error(data.error || 'Failed to start checkout');
+          window.location.href = data.url;
+        } catch (err) {
+          btn.disabled    = false;
+          btn.textContent = 'Get My Guide — $19';
+          setFormError(err.message || 'Something went wrong. Please try again.');
+        }
+      }
+
+      // ── Generate ──────────────────────────────────────────────
+      async function generateGuide(payload) {
+        try {
+          const res  = await fetch('/api/generate', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to generate guide');
+
+          guideBlob     = new Blob([data.html], { type: 'text/html' });
+          guideFilename = data.filename || 'landedtoday-guide.html';
+
+          // Auto-download
+          triggerDownload();
+
+          // Preview in iframe
+          const frame = document.getElementById('guide-frame');
+          frame.srcdoc = data.html;
+          frame.addEventListener('load', function onLoad() {
+            frame.removeEventListener('load', onLoad);
+            try {
+              const h = frame.contentDocument.body.scrollHeight;
+              if (h > 200) frame.style.minHeight = (h + 40) + 'px';
+            } catch (_) { /* cross-origin safety */ }
+          });
+
+          showView('guide-view');
+        } catch (err) {
+          document.getElementById('error-msg').textContent = err.message || 'An unexpected error occurred.';
+          showView('error-view');
+        }
+      }
+
+      // ── Buttons ───────────────────────────────────────────────
+      document.getElementById('redownload-btn').addEventListener('click', triggerDownload);
+
+      document.getElementById('start-over-btn').addEventListener('click', function () {
+        guideBlob = null;
+        document.getElementById('guide-form').reset();
+        setFormError('');
+        showView('form-view');
+      });
+
+      document.getElementById('error-retry-btn').addEventListener('click', function () {
+        showView('form-view');
+      });
+
+    })();
+  </script>
+
+</body>
+</html>
