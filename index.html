@@ -268,8 +268,13 @@
       color: var(--primary);
       font-weight: 600;
     }
+    .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.375rem;
+    }
     .submit-btn {
-      width: 100%;
+      flex: 1;
       background: var(--primary);
       color: white;
       border: none;
@@ -279,7 +284,6 @@
       font-weight: 700;
       cursor: pointer;
       font-family: inherit;
-      margin-top: 0.375rem;
       transition: background 0.15s, transform 0.1s;
       letter-spacing: -0.2px;
     }
@@ -288,6 +292,14 @@
     .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
     .submit-btn.test-mode { background: #D97706; }
     .submit-btn.test-mode:hover:not(:disabled) { background: #B45309; }
+    .admin-btn {
+      flex: none;
+      background: #7C3AED;
+      font-size: 0.78rem;
+      padding: 0.875rem 0.75rem;
+      white-space: nowrap;
+    }
+    .admin-btn:hover:not(:disabled) { background: #6D28D9; }
     .form-fine {
       text-align: center;
       font-size: 0.72rem;
@@ -587,9 +599,14 @@
               placeholder="e.g. finding a co-working space quickly, healthcare access, bringing a pet, finding housing fast..."></textarea>
           </div>
 
-          <button type="submit" class="submit-btn" id="submit-btn">
-            Get My Guide — $19
-          </button>
+          <div class="btn-row">
+            <button type="submit" class="submit-btn" id="submit-btn">
+              Get My Guide — $19
+            </button>
+            <button type="button" class="submit-btn admin-btn" id="admin-generate-btn" style="display:none">
+              Generate Test Guide (Free)
+            </button>
+          </div>
           <p class="form-fine">Secure payment via Stripe &middot; Instant HTML download &middot; No subscription</p>
 
         </form>
@@ -650,6 +667,7 @@
     (function () {
       const params   = new URLSearchParams(window.location.search);
       const isTest   = params.get('test') === 'skip';
+      const isAdmin  = params.get('admin') === 'true';
       const isOk     = params.get('success') === 'true';
       const sessionId= params.get('session_id');
       const cancelled= params.get('cancelled') === 'true';
@@ -687,6 +705,10 @@
         const btn = document.getElementById('submit-btn');
         btn.textContent = 'Generate Test Guide (Free)';
         btn.classList.add('test-mode');
+      }
+
+      if (isAdmin) {
+        document.getElementById('admin-generate-btn').style.display = 'flex';
       }
 
       if (isOk && sessionId) {
@@ -783,6 +805,25 @@
           showView('error-view');
         }
       }
+
+      // ── Admin generate button ─────────────────────────────────
+      document.getElementById('admin-generate-btn').addEventListener('click', async function () {
+        setFormError('');
+
+        const country     = document.getElementById('country').value.trim();
+        const city        = document.getElementById('city').value.trim();
+        const purpose     = document.querySelector('input[name="purpose"]:checked').value;
+        const nationality = document.getElementById('nationality').value.trim();
+        const concerns    = document.getElementById('concerns').value.trim();
+
+        if (!country || !city || !nationality) {
+          setFormError('Please fill in your destination country, city, and nationality.');
+          return;
+        }
+
+        showView('loading-view');
+        await generateGuide({ country, city, purpose, nationality, concerns });
+      });
 
       // ── Buttons ───────────────────────────────────────────────
       document.getElementById('redownload-btn').addEventListener('click', triggerDownload);
