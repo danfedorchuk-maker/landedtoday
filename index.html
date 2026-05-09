@@ -290,16 +290,23 @@
     .submit-btn:hover:not(:disabled) { background: var(--primary-dark); }
     .submit-btn:active:not(:disabled) { transform: scale(0.985); }
     .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
-    .submit-btn.test-mode { background: #D97706; }
-    .submit-btn.test-mode:hover:not(:disabled) { background: #B45309; }
     .admin-btn {
+      display: none;
       flex: none;
       background: #7C3AED;
-      font-size: 0.78rem;
-      padding: 0.875rem 0.75rem;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.875rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
       white-space: nowrap;
     }
     .admin-btn:hover:not(:disabled) { background: #6D28D9; }
+    .admin-btn:disabled { opacity: 0.65; cursor: not-allowed; }
     .form-fine {
       text-align: center;
       font-size: 0.72rem;
@@ -450,7 +457,7 @@
 <body>
 
   <div id="test-banner">
-    🧪 <strong>Test Mode</strong> — Payment bypassed. Fill the form and click Generate.
+    🧪 <strong>Admin / Test Mode</strong> — Use the purple button to generate a free test guide.
   </div>
 
   <nav>
@@ -458,11 +465,8 @@
     <span class="nav-tagline">Survive your first 72 hours abroad</span>
   </nav>
 
-  <!-- ════════════════════════════════
-       FORM VIEW
-  ════════════════════════════════ -->
-  <div id="form-view" class="view active">
-
+  <!-- FORM VIEW -->
+  <div id="form-view" class="view">
     <section class="hero">
       <div class="hero-eyebrow">For expats &amp; people relocating abroad</div>
       <h1>Land anywhere.<br>Survive day one.</h1>
@@ -482,7 +486,6 @@
     </section>
 
     <div class="main-layout">
-
       <!-- Features -->
       <div class="features">
         <h2>Everything you need<br>before you land.</h2>
@@ -555,7 +558,6 @@
         <div class="form-error" id="form-error"></div>
 
         <form id="guide-form" novalidate>
-
           <div class="form-group">
             <label class="form-label" for="country">Destination Country</label>
             <input type="text" id="country" name="country"
@@ -596,28 +598,24 @@
               Specific Concerns <span class="opt">(optional)</span>
             </label>
             <textarea id="concerns" name="concerns" rows="3"
-              placeholder="e.g. finding a co-working space quickly, healthcare access, bringing a pet, finding housing fast..."></textarea>
+              placeholder="e.g. finding a co-working space quickly, healthcare access, bringing a pet..."></textarea>
           </div>
 
           <div class="btn-row">
             <button type="submit" class="submit-btn" id="submit-btn">
               Get My Guide — $19
             </button>
-            <button type="button" class="submit-btn admin-btn" id="admin-generate-btn" style="display:none">
-              Generate Test Guide (Free)
+            <button type="button" class="admin-btn" id="admin-btn">
+              Free Test
             </button>
           </div>
           <p class="form-fine">Secure payment via Stripe &middot; Instant HTML download &middot; No subscription</p>
-
         </form>
       </div>
-
     </div>
-  </div><!-- /form-view -->
+  </div>
 
-  <!-- ════════════════════════════════
-       LOADING VIEW
-  ════════════════════════════════ -->
+  <!-- LOADING VIEW -->
   <div id="loading-view" class="view">
     <div class="spinner"></div>
     <h2>Crafting your personalized guide…</h2>
@@ -630,9 +628,7 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════
-       GUIDE VIEW
-  ════════════════════════════════ -->
+  <!-- GUIDE VIEW -->
   <div id="guide-view" class="view">
     <div class="ready-banner">
       <span class="ready-icon">🎉</span>
@@ -648,9 +644,7 @@
     <iframe id="guide-frame" title="Your Survival Guide" sandbox="allow-same-origin"></iframe>
   </div>
 
-  <!-- ════════════════════════════════
-       ERROR VIEW
-  ════════════════════════════════ -->
+  <!-- ERROR VIEW -->
   <div id="error-view" class="view">
     <div class="error-emoji">😕</div>
     <h2>Something went wrong</h2>
@@ -665,138 +659,106 @@
 
   <script>
     (function () {
-      const params   = new URLSearchParams(window.location.search);
-      const isTest   = params.get('test') === 'skip';
-      const isAdmin  = params.get('admin') === 'true';
-      const isOk     = params.get('success') === 'true';
-      const sessionId= params.get('session_id');
-      const cancelled= params.get('cancelled') === 'true';
+      const params      = new URLSearchParams(window.location.search);
+      const isAdmin     = params.get('admin') === 'true';
+      const isSuccess   = params.get('success') === 'true';
+      const sessionId   = 'skip';
+      const isCancelled = params.get('cancelled') === 'true';
 
       let guideBlob     = null;
       let guideFilename = 'landedtoday-guide.html';
 
-      // ── Helpers ──────────────────────────────────────────────
+      // ── View switcher ─────────────────────────────────────────
       function showView(id) {
-        ['form-view','loading-view','guide-view','error-view'].forEach(v => {
-          const el = document.getElementById(v);
-          el.classList.toggle('active', v === id);
+        document.querySelectorAll('.view').forEach(function (el) {
+          el.classList.toggle('active', el.id === id);
         });
       }
 
-      function setFormError(msg) {
-        const el = document.getElementById('form-error');
+      function showFormError(msg) {
+        var el = document.getElementById('form-error');
         el.textContent = msg;
         el.style.display = msg ? 'block' : 'none';
       }
 
+      // ── Download helper ───────────────────────────────────────
       function triggerDownload() {
         if (!guideBlob) return;
-        const url = URL.createObjectURL(guideBlob);
-        const a   = Object.assign(document.createElement('a'), { href: url, download: guideFilename });
+        var url = URL.createObjectURL(guideBlob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = guideFilename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 8000);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 8000);
       }
 
-      // ── Init ─────────────────────────────────────────────────
-      if (isTest) {
-        document.getElementById('test-banner').style.display = 'block';
-        const btn = document.getElementById('submit-btn');
-        btn.textContent = 'Generate Test Guide (Free)';
-        btn.classList.add('test-mode');
+      // ── Form field collector ──────────────────────────────────
+      function getFormData() {
+        return {
+          country:     document.getElementById('country').value.trim(),
+          city:        document.getElementById('city').value.trim(),
+          purpose:     document.querySelector('input[name="purpose"]:checked').value,
+          nationality: document.getElementById('nationality').value.trim(),
+          concerns:    document.getElementById('concerns').value.trim(),
+        };
       }
 
-      if (isAdmin) {
-        document.getElementById('admin-generate-btn').style.display = 'flex';
-      }
-
-      if (isOk && sessionId) {
-        history.replaceState({}, '', '/');
-        showView('loading-view');
-        generateGuide({ session_id: sessionId });
-      } else if (cancelled) {
-        history.replaceState({}, '', '/');
-        showView('form-view');
-        setFormError('Payment was cancelled. Ready when you are.');
-      } else {
-        showView('form-view');
-      }
-
-      // ── Form submit ───────────────────────────────────────────
-      document.getElementById('guide-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        setFormError('');
-
-        const country     = document.getElementById('country').value.trim();
-        const city        = document.getElementById('city').value.trim();
-        const purpose     = document.querySelector('input[name="purpose"]:checked').value;
-        const nationality = document.getElementById('nationality').value.trim();
-        const concerns    = document.getElementById('concerns').value.trim();
-
-        if (!country || !city || !nationality) {
-          setFormError('Please fill in your destination country, city, and nationality.');
-          return;
+      function validateForm(data) {
+        if (!data.country || !data.city || !data.nationality) {
+          showFormError('Please fill in destination country, city, and your nationality.');
+          return false;
         }
+        return true;
+      }
 
-        const payload = { country, city, purpose, nationality, concerns };
-
-        if (isTest) {
-          showView('loading-view');
-          await generateGuide({ ...payload, test: 'skip' });
-        } else {
-          await startCheckout(payload);
-        }
-      });
-
-      // ── Checkout ──────────────────────────────────────────────
-      async function startCheckout(payload) {
-        const btn = document.getElementById('submit-btn');
+      // ── API: checkout (paid) ──────────────────────────────────
+      async function startCheckout(formData) {
+        var btn = document.getElementById('submit-btn');
         btn.disabled = true;
         btn.textContent = 'Preparing checkout…';
 
         try {
-          const res  = await fetch('/api/checkout', {
-            method:  'POST',
+          var res = await fetch('/api/checkout', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(payload),
+            body: JSON.stringify(formData),
           });
-          const data = await res.json();
-          if (!res.ok || !data.url) throw new Error(data.error || 'Failed to start checkout');
+          var data = await res.json();
+          if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.');
           window.location.href = data.url;
         } catch (err) {
-          btn.disabled    = false;
+          btn.disabled = false;
           btn.textContent = 'Get My Guide — $19';
-          setFormError(err.message || 'Something went wrong. Please try again.');
+          showFormError(err.message || 'Something went wrong. Please try again.');
         }
       }
 
-      // ── Generate ──────────────────────────────────────────────
+      // ── API: generate guide ───────────────────────────────────
       async function generateGuide(payload) {
+        showView('loading-view');
         try {
-          const res  = await fetch('/api/generate', {
-            method:  'POST',
+          var res = await fetch('/api/generate', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(payload),
+            body: JSON.stringify(payload),
           });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Failed to generate guide');
+          var data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to generate guide.');
 
           guideBlob     = new Blob([data.html], { type: 'text/html' });
           guideFilename = data.filename || 'landedtoday-guide.html';
-
-          // Auto-download
           triggerDownload();
 
-          // Preview in iframe
-          const frame = document.getElementById('guide-frame');
+          var frame = document.getElementById('guide-frame');
           frame.srcdoc = data.html;
           frame.addEventListener('load', function onLoad() {
             frame.removeEventListener('load', onLoad);
             try {
-              const h = frame.contentDocument.body.scrollHeight;
+              var h = frame.contentDocument.body.scrollHeight;
               if (h > 200) frame.style.minHeight = (h + 40) + 'px';
-            } catch (_) { /* cross-origin safety */ }
+            } catch (_) {}
           });
 
           showView('guide-view');
@@ -806,32 +768,54 @@
         }
       }
 
-      // ── Admin generate button ─────────────────────────────────
-      document.getElementById('admin-generate-btn').addEventListener('click', async function () {
-        setFormError('');
+      // ── Page init ─────────────────────────────────────────────
+      if (isAdmin) {
+        document.getElementById('test-banner').style.display = 'block';
+        document.getElementById('admin-btn').style.display = 'inline-flex';
+      }
 
-        const country     = document.getElementById('country').value.trim();
-        const city        = document.getElementById('city').value.trim();
-        const purpose     = document.querySelector('input[name="purpose"]:checked').value;
-        const nationality = document.getElementById('nationality').value.trim();
-        const concerns    = document.getElementById('concerns').value.trim();
+      if (isSuccess && sessionId) {
+        // Stripe returned with a completed payment
+        history.replaceState({}, '', '/');
+        generateGuide({ session_id: sessionId });
+      } else if (isCancelled) {
+        // User cancelled Stripe checkout
+        history.replaceState({}, '', '/');
+        showView('form-view');
+        showFormError('Payment was cancelled. Ready when you are.');
+      } else {
+        // Default: show the form
+        showView('form-view');
+      }
 
-        if (!country || !city || !nationality) {
-          setFormError('Please fill in your destination country, city, and nationality.');
-          return;
-        }
-
-        showView('loading-view');
-        await generateGuide({ country, city, purpose, nationality, concerns });
+      // ── Form submit (paid flow) ───────────────────────────────
+      document.getElementById('guide-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        showFormError('');
+        var data = getFormData();
+        if (!validateForm(data)) return;
+        await startCheckout(data);
       });
 
-      // ── Buttons ───────────────────────────────────────────────
+      // ── Admin test button (free, no Stripe) ───────────────────
+      document.getElementById('admin-btn').addEventListener('click', async function () {
+        showFormError('');
+        var data = getFormData();
+        if (!validateForm(data)) return;
+        document.getElementById('admin-btn').disabled = true;
+        document.getElementById('submit-btn').disabled = true;
+        await generateGuide({ ...data, test: 'skip' });
+        document.getElementById('admin-btn').disabled = false;
+        document.getElementById('submit-btn').disabled = false;
+      });
+
+      // ── Guide view buttons ────────────────────────────────────
       document.getElementById('redownload-btn').addEventListener('click', triggerDownload);
 
       document.getElementById('start-over-btn').addEventListener('click', function () {
         guideBlob = null;
         document.getElementById('guide-form').reset();
-        setFormError('');
+        showFormError('');
         showView('form-view');
       });
 
